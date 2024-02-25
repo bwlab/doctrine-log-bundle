@@ -2,10 +2,9 @@
 
 namespace Bwlab\DoctrineLogBundle\Annotation;
 
-/**
- * @Annotation
- * @Target("CLASS")
- */
+use Attribute;
+
+#[Attribute(Attribute::TARGET_CLASS)]
 class Loggable
 {
     const STRATEGY_EXCLUDE_ALL = 'exclude_all';
