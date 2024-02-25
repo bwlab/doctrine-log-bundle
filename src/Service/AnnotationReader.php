@@ -2,45 +2,51 @@
 
 namespace Bwlab\DoctrineLogBundle\Service;
 
+use AllowDynamicProperties;
 use Bwlab\DoctrineLogBundle\Annotation\Exclude;
 use Bwlab\DoctrineLogBundle\Annotation\Log;
 use Bwlab\DoctrineLogBundle\Annotation\Loggable;
+use Doctrine\ORM\Mapping\Id;
+use ReflectionAttribute;
 use ReflectionClass;
 use Doctrine\Common\Annotations\Reader;
 
-class AnnotationReader
+#[AllowDynamicProperties] class AnnotationReader
 {
-    private Reader $reader;
 
-    private Loggable $classAnnotation;
+    private ReflectionAttribute $attribute;
 
     private $entity;
+    private array $ids = [];
 
-    public function __construct(Reader $reader)
-    {
-        $this->reader = $reader;
-    }
 
     public function init($entity)
     {
+        
         $this->entity = $entity;
-        $class = new ReflectionClass(str_replace('Proxies\__CG__\\', '', get_class($entity)));
-        $this->classAnnotation = $this->reader->getClassAnnotation($class, Loggable::class);
+        $reflectionClass = new ReflectionClass(str_replace('Proxies\__CG__\\', '', get_class($entity)));
+        $this->attribute = $reflectionClass->getAttributes(Loggable::class)[0];
     }
 
-    public function isLoggable(?string $property): bool
+    public function isLoggable(?string $property = null): bool
     {
-        return !$property ? $this->classAnnotation instanceof Loggable : $this->isPropertyLoggable($property);
+        if(!$property) {
+            return $this->attribute->getName() === Loggable::class;
+        }
+        
+        return  $this->isPropertyLoggable($property);
     }
 
     private function isPropertyLoggable(string $property): bool
     {
+        return true;
+        //@todo correggere
         $property = new \ReflectionProperty(
             str_replace('Proxies\__CG__\\', '', get_class($this->entity)),
             $property
         );
 
-        if ($this->classAnnotation->strategy === Loggable::STRATEGY_EXCLUDE_ALL) {
+        if ($this->attribute->strategy === Loggable::STRATEGY_EXCLUDE_ALL) {
             // check for log annotation
             $annotation = $this->reader->getPropertyAnnotation($property, Log::class);
 

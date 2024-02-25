@@ -2,11 +2,11 @@
 
 namespace Bwlab\DoctrineLogBundle\EventListener;
 
+use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
+use Bwlab\DoctrineLogBundle\Service\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
-use Bwlab\DoctrineLogBundle\Service\AnnotationReader;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -30,20 +30,21 @@ class Logger
     /**
      * @var array
      */
-    private array $ignoreProperties;
+    private array $ignoreProperties = [];
+    private object $entityRemoved;
 
     public function __construct(
         EntityManagerInterface $em,
         Serializer             $serializer,
-        AnnotationReader       $reader,
         LoggerInterface        $monolog,
-        array                  $ignoreProperties
+                               $reader
+//       ?array                  $ignoreProperties
     )
     {
         $this->em = $em;
         $this->serializer = $serializer;
         $this->reader = $reader;
-        $this->ignoreProperties = $ignoreProperties;
+//        $this->ignoreProperties = $ignoreProperties;
         $this->monolog = $monolog;
     }
 
@@ -80,7 +81,6 @@ class Logger
                     if (count($changeSet) == 0) {
                         return;
                     }
-
                     // just getting the changed objects ids
                     foreach ($changeSet as $key => &$values) {
                         if (in_array($key, $this->ignoreProperties) || !$this->reader->isLoggable($key)) {
@@ -98,7 +98,6 @@ class Logger
                             $values[1] = (string)$values[1];
                         }
                     }
-
                     if (!empty($changeSet)) {
                         $changes = $this->serializer->serialize($changeSet, 'json');
                     }
@@ -119,14 +118,23 @@ class Logger
         }
     }
 
-    private function createLogEntity( $object, string $action, string $changes = null): LogEntity
+    private function createLogEntity($object, string $action, string $changes = null): LogEntity
     {
+        $today = new \DateTime();
         $log = new LogEntity();
+        if ($action === LogEntity::ACTION_REMOVE) {
+            $foreignKey = $this->entityRemoved->getLogId();
+        } else {
+            $foreignKey = $object->getLogId();
+        }
+
         $log
             ->setObjectClass(str_replace('Proxies\__CG__\\', '', get_class($object)))
-            ->setForeignKey($object->getId())
+            ->setForeignKey($foreignKey)
             ->setAction($action)
-            ->setChanges($changes);
+            ->setChanges($changes)
+            ->setCreatedAt($today)
+            ->setUpdatedAt($today);
 
         return $log;
     }
@@ -143,6 +151,13 @@ class Logger
         $entity = $args->getObject();
 
         $this->log($entity, LogEntity::ACTION_UPDATE);
+
+    }
+
+    public function preRemove(LifecycleEventArgs $args)
+    {
+        $entity = $args->getObject();
+        $this->entityRemoved = clone $entity;
 
     }
 

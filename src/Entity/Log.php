@@ -25,14 +25,15 @@ class Log
     #[ORM\Column(type: "string", name: "object_class")]
     protected string $objectClass;
 
-    #[ORM\Column(type: "integer", name: "foreign_key")]
-    protected int $foreignKey;
+    #[ORM\Column(type: "string", name: "foreign_key")]
+    protected string $foreignKey;
 
     #[ORM\Column(type: "string")]
     protected string $action;
 
     #[ORM\Column(type: "text", nullable: true)]
-    protected string $changes;
+    protected ?string $changes;
+
 
     public function __construct()
     {
@@ -51,12 +52,12 @@ class Log
         return $this;
     }
 
-    public function getChanges(): string
+    public function getChanges(): ?string
     {
         return $this->changes;
     }
 
-    public function setChanges($changes): self
+    public function setChanges(?string $changes): self
     {
         $this->changes = $changes;
 
