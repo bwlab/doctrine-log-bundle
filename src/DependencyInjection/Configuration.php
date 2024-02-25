@@ -1,6 +1,6 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\DependencyInjection;
+namespace Bwlab\DoctrineLogBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
