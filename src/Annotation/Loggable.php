@@ -1,11 +1,8 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\Annotation;
+namespace Bwlab\DoctrineLogBundle\Annotation;
 
 /**
- * Class Loggable
- * @package Mb\DoctrineLogBundle\Annotation
- *
  * @Annotation
  * @Target("CLASS")
  */
@@ -18,5 +15,5 @@ class Loggable
      * @var string
      * @Enum({"exclude_all", "include_all"})
      */
-    public $strategy = self::STRATEGY_INCLUDE_ALL;
+    public string $strategy = self::STRATEGY_INCLUDE_ALL;
 }

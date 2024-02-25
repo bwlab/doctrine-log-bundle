@@ -1,15 +1,14 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\Tests\EventListener;
+namespace Bwlab\DoctrineLogBundle\Tests\EventListener;
 
+use Bwlab\DoctrineLogBundle\EventListener\Logger;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use Mb\DoctrineLogBundle\EventListener\Logger;
 use PHPUnit\Framework\TestCase;
 
 class LoggerTest extends TestCase

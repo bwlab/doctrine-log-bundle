@@ -1,63 +1,37 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\EventListener;
+namespace Bwlab\DoctrineLogBundle\EventListener;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use JMS\Serializer\SerializerInterface as Serializer;
-use Mb\DoctrineLogBundle\Entity\Log as LogEntity;
-use Mb\DoctrineLogBundle\Service\AnnotationReader;
-use Mb\DoctrineLogBundle\Service\Logger as LoggerService;
+use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
+use Bwlab\DoctrineLogBundle\Service\AnnotationReader;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Serializer;
 
-/**
- * Class Logger
- * @package CoreBundle\EventListener
- *
- * @SuppressWarnings(PHPMD.UnusedFormalParameter.Unused)
- */
+
 class Logger
 {
-    /**
-     * @var array
-     */
-    protected $logs;
+    protected array $logs;
 
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
+    private EntityManagerInterface $em;
 
-    /**
-     * @var Serializer
-     */
-    private $serializer;
+    private Serializer $serializer;
 
-    /**
-     * @var AnnotationReader
-     */
-    private $reader;
+    private AnnotationReader $reader;
 
     /**
      * @var LoggerInterface
      */
-    private $monolog;
+    private LoggerInterface $monolog;
 
     /**
      * @var array
      */
-    private $ignoreProperties;
+    private array $ignoreProperties;
 
-    /**
-     * Logger constructor.
-     *
-     * @param EntityManagerInterface $em
-     * @param Serializer $serializer
-     * @param AnnotationReader $reader
-     * @param array $ignoreProperties
-     */
     public function __construct(
         EntityManagerInterface $em,
         Serializer             $serializer,
@@ -73,11 +47,6 @@ class Logger
         $this->monolog = $monolog;
     }
 
-    /**
-     * Flush logs. Can't flush inside post update
-     *
-     * @param PostFlushEventArgs $args
-     */
     public function postFlush(PostFlushEventArgs $args)
     {
         if (!empty($this->logs)) {
@@ -90,24 +59,13 @@ class Logger
         }
     }
 
-    /**
-     * Post persist listener
-     *
-     * @param LifecycleEventArgs $args
-     */
     public function postPersist(LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
         $this->log($entity, LogEntity::ACTION_CREATE);
     }
 
-    /**
-     * Log the action
-     *
-     * @param object $entity
-     * @param string $action
-     */
-    private function log($entity, $action)
+    private function log($entity, string $action)
     {
         try {
             $this->reader->init($entity);
@@ -161,15 +119,7 @@ class Logger
         }
     }
 
-    /**
-     * Creates the log entity
-     *
-     * @param object $object
-     * @param string $action
-     * @param string $changes
-     * @return LogEntity
-     */
-    private function createLogEntity($object, $action, $changes = null): LogEntity
+    private function createLogEntity( $object, string $action, string $changes = null): LogEntity
     {
         $log = new LogEntity();
         $log
@@ -181,11 +131,6 @@ class Logger
         return $log;
     }
 
-    /**
-     * Pre remove listener
-     *
-     * @param LifecycleEventArgs $args
-     */
     public function postRemove(LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
@@ -193,11 +138,6 @@ class Logger
 
     }
 
-    /**
-     * Post update listener
-     *
-     * @param LifecycleEventArgs $args
-     */
     public function postUpdate(LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
@@ -206,12 +146,6 @@ class Logger
 
     }
 
-    /**
-     * Saves a log
-     *
-     * @param LogEntity $log
-     * @return bool
-     */
     public function save(LogEntity $log): bool
     {
         $this->em->persist($log);

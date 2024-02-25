@@ -5,23 +5,16 @@ namespace Mb\DoctrineLogBundle\DependencyInjection;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
-/**
- * Class Configuration
- * @package Mb\DoctrineLogBundle\DependencyInjection
- */
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
-	    $treeBuilder = new TreeBuilder('mb_doctrine_log');
+	    $treeBuilder = new TreeBuilder('bwlab_doctrine_log');
 	    if (method_exists($treeBuilder, 'getRootNode')) {
 		    $rootNode = $treeBuilder->getRootNode();
 	    } else {
 		    // for symfony/config 4.1 and older
-		    $rootNode = $treeBuilder->root('mb_doctrine_log');
+		    $rootNode = $treeBuilder->root('bwlab_doctrine_log');
 	    }
 
         $rootNode
@@ -32,7 +25,7 @@ class Configuration implements ConfigurationInterface
                 ->defaultValue('default')
             ->end()
             ->scalarNode('listener_class')
-                ->defaultValue('Mb\DoctrineLogBundle\EventListener\Logger')
+                ->defaultValue('Bwlab\DoctrineLogBundle\EventListener\Logger')
             ->end()
         ;
 

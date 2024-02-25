@@ -1,11 +1,8 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\Annotation;
+namespace Bwlab\DoctrineLogBundle\Annotation;
 
 /**
- * Class Exclude
- * @package Mb\DoctrineLogBundle\Annotation
- *
  * @Annotation
  * @Target("PROPERTY")
  */

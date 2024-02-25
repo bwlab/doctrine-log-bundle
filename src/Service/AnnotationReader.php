@@ -1,49 +1,26 @@
 <?php
 
-namespace Mb\DoctrineLogBundle\Service;
+namespace Bwlab\DoctrineLogBundle\Service;
 
-use Mb\DoctrineLogBundle\Annotation\Exclude;
-use Mb\DoctrineLogBundle\Annotation\Log;
-use Mb\DoctrineLogBundle\Annotation\Loggable;
+use Bwlab\DoctrineLogBundle\Annotation\Exclude;
+use Bwlab\DoctrineLogBundle\Annotation\Log;
+use Bwlab\DoctrineLogBundle\Annotation\Loggable;
 use ReflectionClass;
 use Doctrine\Common\Annotations\Reader;
 
-/**
- * Class AnnotationReader
- * @package Mb\DoctrineLogBundle\Service
- */
 class AnnotationReader
 {
-    /**
-     * @var Reader $reader
-     */
-    private $reader;
+    private Reader $reader;
 
-    /**
-     * @var Loggable
-     */
-    private $classAnnotation;
+    private Loggable $classAnnotation;
 
-    /**
-     * @var object
-     */
     private $entity;
 
-    /**
-     * AnnotationReader constructor.
-     * @param Reader $reader
-     */
     public function __construct(Reader $reader)
     {
         $this->reader = $reader;
     }
 
-    /**
-     * Init the entity
-     *
-     * @param object $entity
-     * @throws \ReflectionException
-     */
     public function init($entity)
     {
         $this->entity = $entity;
@@ -51,25 +28,12 @@ class AnnotationReader
         $this->classAnnotation = $this->reader->getClassAnnotation($class, Loggable::class);
     }
 
-    /**
-     * Check if class or property is loggable
-     *
-     * @param null|string $property
-     * @return bool
-     */
-    public function isLoggable($property = null)
+    public function isLoggable(?string $property): bool
     {
         return !$property ? $this->classAnnotation instanceof Loggable : $this->isPropertyLoggable($property);
     }
 
-    /**
-     * Check if propert is loggable
-     *
-     * @param $property
-     * @return bool
-     * @throws \ReflectionException
-     */
-    private function isPropertyLoggable($property)
+    private function isPropertyLoggable(string $property): bool
     {
         $property = new \ReflectionProperty(
             str_replace('Proxies\__CG__\\', '', get_class($this->entity)),
