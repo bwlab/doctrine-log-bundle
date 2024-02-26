@@ -27,6 +27,9 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('listener_class')
                 ->defaultValue('Bwlab\DoctrineLogBundle\EventListener\Logger')
             ->end()
+            ->scalarNode('entity_log_class')
+                ->defaultValue('Bwlab\DoctrineLogBundle\Entity\Logger')
+            ->end()
         ;
 
         return $treeBuilder;

@@ -15,16 +15,17 @@ class BwlabDoctrineLogExtension extends Extension
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yml');
-
         $configuration = $this->getConfiguration($configs, $container);
-        $config = $this->processConfiguration($configuration, $configs);
+        $processed_configuration = $this->processConfiguration($configuration, $configs);
 
-        $emName = sprintf('doctrine.orm.%s_entity_manager', $config['entity_manager']);
+        $emName = sprintf('doctrine.orm.%s_entity_manager', $processed_configuration['entity_manager']);
         $emReference = new Reference($emName);
-        $definition = $container->register('mb_doctrine_log.event_listener.logger', $config['listener_class']);
+        $definition = $container->register('bwlab_doctrine_log.event_listener.logger', $processed_configuration['listener_class']);
+
+        $container->setParameter('bwlab_doctrine_log.entity_log_class', $processed_configuration['entity_log_class']);
 
         $definition->setArgument(0, $emReference);
-        $definition->setArgument(4, $config['ignore_properties']);
+        $definition->setArgument(4, $processed_configuration['ignore_properties']);
     }
 }
 
