@@ -3,6 +3,8 @@
 namespace Bwlab\DoctrineLogBundle\EventListener;
 
 use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
+use Bwlab\DoctrineLogBundle\Entity\LogAbstract;
+use Bwlab\DoctrineLogBundle\Interfaces\LoggerHookInterface;
 use Bwlab\DoctrineLogBundle\Service\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
@@ -22,33 +24,33 @@ class Logger
 
     private AnnotationReader $reader;
 
-    /**
-     * @var LoggerInterface
-     */
     private LoggerInterface $monolog;
+    private ?LoggerHookInterface $loggerHook;
 
     /**
      * @var array
      */
     private array $ignoreProperties = [];
     private object $entityRemoved;
-    private string $logEntityClass;
+    private ?string $logEntityClass;
 
     public function __construct(
         EntityManagerInterface $em,
         Serializer             $serializer,
         LoggerInterface        $monolog,
                                $reader,
-        string                 $logEntityClass,
-//       ?array                  $ignoreProperties
+        ?LoggerHookInterface   $loggerHook,
+        ?string                $logEntityClass,
+//        ?array                 $ignoreProperties
     )
     {
         $this->em = $em;
         $this->serializer = $serializer;
         $this->reader = $reader;
-//        $this->ignoreProperties = $ignoreProperties;
         $this->monolog = $monolog;
         $this->logEntityClass = $logEntityClass;
+        $this->loggerHook = $loggerHook;
+        //$this->ignoreProperties = $ignoreProperties;
     }
 
     public function postFlush(PostFlushEventArgs $args)
@@ -66,7 +68,7 @@ class Logger
     public function postPersist(LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
-        $this->log($entity, LogEntity::ACTION_CREATE);
+        $this->log($entity, LogAbstract::ACTION_CREATE);
     }
 
     private function log($entity, string $action)
@@ -75,7 +77,7 @@ class Logger
             $this->reader->init($entity);
             if ($this->reader->isLoggable()) {
                 $changes = null;
-                if ($action === LogEntity::ACTION_UPDATE) {
+                if ($action === LogAbstract::ACTION_UPDATE) {
                     $uow = $this->em->getUnitOfWork();
 
                     // get changes => should be already computed here (is a listener)
@@ -106,7 +108,7 @@ class Logger
                     }
                 }
 
-                if ($action === LogEntity::ACTION_UPDATE && !$changes) {
+                if ($action === LogAbstract::ACTION_UPDATE && !$changes) {
                     // Log nothing
                 } else {
                     $this->logs[] = $this->createLogEntity(
@@ -121,11 +123,12 @@ class Logger
         }
     }
 
-    private function createLogEntity($object, string $action, string $changes = null): LogEntity
+    private function createLogEntity($object, string $action, string $changes = null): LogAbstract
     {
         $today = new \DateTime();
-        $log = new LogEntity();
-        if ($action === LogEntity::ACTION_REMOVE) {
+
+        $log = new $this->logEntityClass;
+        if ($action === LogAbstract::ACTION_REMOVE) {
             $foreignKey = $this->entityRemoved->getLogId();
         } else {
             $foreignKey = $object->getLogId();
@@ -139,13 +142,14 @@ class Logger
             ->setCreatedAt($today)
             ->setUpdatedAt($today);
 
+        $this->loggerHook->doModifyEntity($object, $action, $changes);
         return $log;
     }
 
     public function postRemove(LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
-        $this->log($entity, LogEntity::ACTION_REMOVE);
+        $this->log($entity, LogAbstract::ACTION_REMOVE);
 
     }
 
@@ -153,7 +157,7 @@ class Logger
     {
         $entity = $args->getObject();
 
-        $this->log($entity, LogEntity::ACTION_UPDATE);
+        $this->log($entity, LogAbstract::ACTION_UPDATE);
 
     }
 
