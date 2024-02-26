@@ -28,7 +28,7 @@ class Configuration implements ConfigurationInterface
                 ->defaultValue('Bwlab\DoctrineLogBundle\EventListener\Logger')
             ->end()
             ->scalarNode('entity_log_class')
-                ->defaultValue('Bwlab\DoctrineLogBundle\Entity\Log')
+                ->defaultValue('Bwlab\DoctrineLogBundle\Entity\Logger')
             ->end()
         ;
 

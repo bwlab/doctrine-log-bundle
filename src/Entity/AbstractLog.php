@@ -6,9 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Blameable\Traits\BlameableEntity;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[ORM\Entity]
-#[ORM\Table(name: "entity_log")]
-class Log
+abstract class AbstractLog
 {
     use BlameableEntity,
         TimestampableEntity;
@@ -19,8 +17,6 @@ class Log
 
     const ACTION_REMOVE = 'remove';
 
-    #[ORM\Id, ORM\Column(type: "integer"), ORM\GeneratedValue(strategy: "AUTO")]
-    protected int $id;
 
     #[ORM\Column(type: "string", name: "object_class")]
     protected string $objectClass;
@@ -84,11 +80,6 @@ class Log
         $this->foreignKey = $foreignKey;
 
         return $this;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
     }
 
     public function getObjectClass(): string
