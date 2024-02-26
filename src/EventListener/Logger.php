@@ -32,12 +32,14 @@ class Logger
      */
     private array $ignoreProperties = [];
     private object $entityRemoved;
+    private string $logEntityClass;
 
     public function __construct(
         EntityManagerInterface $em,
         Serializer             $serializer,
         LoggerInterface        $monolog,
-                               $reader
+                               $reader,
+        string                 $logEntityClass,
 //       ?array                  $ignoreProperties
     )
     {
@@ -46,6 +48,7 @@ class Logger
         $this->reader = $reader;
 //        $this->ignoreProperties = $ignoreProperties;
         $this->monolog = $monolog;
+        $this->logEntityClass = $logEntityClass;
     }
 
     public function postFlush(PostFlushEventArgs $args)
