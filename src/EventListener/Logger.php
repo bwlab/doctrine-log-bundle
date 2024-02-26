@@ -5,7 +5,7 @@ namespace Bwlab\DoctrineLogBundle\EventListener;
 use Bwlab\DoctrineLogBundle\Entity\AbstractLog;
 use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
 use Bwlab\DoctrineLogBundle\Interfaces\LoggerHookInterface;
-use Bwlab\DoctrineLogBundle\Service\AnnotationReader;
+use Bwlab\DoctrineLogBundle\Service\AttributeReader;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
@@ -22,7 +22,7 @@ class Logger
 
     private Serializer $serializer;
 
-    private AnnotationReader $reader;
+    private AttributeReader $reader;
 
     /**
      * @var LoggerInterface
@@ -41,17 +41,35 @@ class Logger
         EntityManagerInterface $em,
         Serializer             $serializer,
         LoggerInterface        $monolog,
-                               $reader,
-        LoggerHookInterface    $loggerHook,
-        string                 $logEntityClass,
     )
     {
         $this->em = $em;
         $this->serializer = $serializer;
-        $this->reader = $reader;
         $this->monolog = $monolog;
+    }
+
+    public function setAttributeReader(AttributeReader $reader): self
+    {
+        $this->reader = $reader;
+        return $this;
+    }
+
+    public function setIgnoreProperties(array $ignoreProperties): self
+    {
+        $this->ignoreProperties = $ignoreProperties;
+        return $this;
+    }
+
+    public function setLogEntityClass(string $logEntityClass): self
+    {
         $this->logEntityClass = $logEntityClass;
+        return $this;
+    }
+
+    public function setLoggerHook(LoggerHookInterface $loggerHook): self
+    {
         $this->loggerHook = $loggerHook;
+        return $this;
     }
 
     public function postFlush(PostFlushEventArgs $args)
