@@ -13,8 +13,8 @@ services:
       - "@serializer"
       - "@monolog.logger"
       - "@bwlab_doctrine_log.service.annotation_reader"
-      - "@bwlab_doctrine_log.service.logger_hook"
       - "%bwlab_doctrine_log.entity_log_class%"
+      - "@bwlab_doctrine_log.service.logger_hook"
 #   Secondo servizio
   bwlab_doctrine_log.service.annotation_reader:
     class: Bwlab\DoctrineLogBundle\Service\AnnotationReader

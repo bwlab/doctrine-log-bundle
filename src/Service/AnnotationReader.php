@@ -14,24 +14,28 @@ use Doctrine\Common\Annotations\Reader;
 #[AllowDynamicProperties] class AnnotationReader
 {
 
-    private ReflectionAttribute $attribute;
+    private ?ReflectionAttribute $attribute;
 
     private $entity;
     private array $ids = [];
 
 
-    public function init($entity)
+    public function init($entity): void
     {
-        
+
         $this->entity = $entity;
         $reflectionClass = new ReflectionClass(str_replace('Proxies\__CG__\\', '', get_class($entity)));
-        $this->attribute = $reflectionClass->getAttributes(Loggable::class)[0];
+        if(count($reflectionClass->getAttributes(Loggable::class))===0) {
+            $this->attribute = null;
+            return;
+        }
+       $this->attribute = $reflectionClass->getAttributes(Loggable::class)[0];
     }
 
     public function isLoggable(?string $property = null): bool
     {
         if(!$property) {
-            return $this->attribute->getName() === Loggable::class;
+            return $this->attribute ? $this->attribute->getName() === Loggable::class: false;
         }
         
         return  $this->isPropertyLoggable($property);

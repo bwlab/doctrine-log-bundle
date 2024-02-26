@@ -8,7 +8,7 @@ use Bwlab\DoctrineLogBundle\Interfaces\LoggerHookInterface;
 class LoggerHook implements LoggerHookInterface
 {
 
-    public function doModifyEntity($object, string $action, string $changes = null)
+    public function addLogInfo($logger, $object, string $action, string $changes = null)
     {
     }
 }
