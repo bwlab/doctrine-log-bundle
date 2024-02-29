@@ -3,7 +3,6 @@
 namespace Bwlab\DoctrineLogBundle\EventListener;
 
 use Bwlab\DoctrineLogBundle\Entity\AbstractLog;
-use Bwlab\DoctrineLogBundle\Entity\Log as LogEntity;
 use Bwlab\DoctrineLogBundle\Interfaces\LoggerHookInterface;
 use Bwlab\DoctrineLogBundle\Service\AttributeReader;
 use Doctrine\ORM\EntityManagerInterface;
@@ -92,50 +91,50 @@ class Logger
 
     private function log($entity, string $action)
     {
-            $this->reader->init($entity);
-            if ($this->reader->isLoggable()) {
-                $changes = null;
-                if ($action === AbstractLog::ACTION_UPDATE) {
-                    $uow = $this->em->getUnitOfWork();
+        $this->reader->init($entity);
+        if ($this->reader->isLoggable()) {
+            $changes = null;
+            if ($action === AbstractLog::ACTION_UPDATE) {
+                $uow = $this->em->getUnitOfWork();
 
-                    // get changes => should be already computed here (is a listener)
-                    $changeSet = $uow->getEntityChangeSet($entity);
-                    // if we have no changes left => don't create revision log
-                    if (count($changeSet) == 0) {
-                        return;
+                // get changes => should be already computed here (is a listener)
+                $changeSet = $uow->getEntityChangeSet($entity);
+                // if we have no changes left => don't create revision log
+                if (count($changeSet) == 0) {
+                    return;
+                }
+                // just getting the changed objects ids
+                foreach ($changeSet as $key => &$values) {
+                    if (in_array($key, $this->ignoreProperties) || !$this->reader->isLoggable($key)) {
+                        // ignore configured properties
+                        unset($changeSet[$key]);
                     }
-                    // just getting the changed objects ids
-                    foreach ($changeSet as $key => &$values) {
-                        if (in_array($key, $this->ignoreProperties) || !$this->reader->isLoggable($key)) {
-                            // ignore configured properties
-                            unset($changeSet[$key]);
-                        }
 
-                        if (is_object($values[0]) && method_exists($values[0], 'getId')) {
-                            $values[0] = $values[0]->getId();
-                        }
-
-                        if (is_object($values[1]) && method_exists($values[1], 'getId')) {
-                            $values[1] = $values[1]->getId();
-                        } elseif ($values[1] instanceof StreamInterface) {
-                            $values[1] = (string)$values[1];
-                        }
+                    if (is_object($values[0]) && method_exists($values[0], 'getId')) {
+                        $values[0] = $values[0]->getId();
                     }
-                    if (!empty($changeSet)) {
-                        $changes = $this->serializer->serialize($changeSet, 'json');
+
+                    if (is_object($values[1]) && method_exists($values[1], 'getId')) {
+                        $values[1] = $values[1]->getId();
+                    } elseif ($values[1] instanceof StreamInterface) {
+                        $values[1] = (string)$values[1];
                     }
                 }
-
-                if ($action === AbstractLog::ACTION_UPDATE && !$changes) {
-                    // Log nothing
-                } else {
-                    $this->logs[] = $this->createLogEntity(
-                        $entity,
-                        $action,
-                        $changes
-                    );
+                if (!empty($changeSet)) {
+                    $changes = $this->serializer->serialize($changeSet, 'json');
                 }
             }
+
+            if ($action === AbstractLog::ACTION_UPDATE && !$changes) {
+                // Log nothing
+            } else {
+                $this->logs[] = $this->createLogEntity(
+                    $entity,
+                    $action,
+                    $changes
+                );
+            }
+        }
 
     }
 
@@ -184,7 +183,7 @@ class Logger
 
     }
 
-    public function save(LogEntity $log): bool
+    public function save(AbstractLog $log): bool
     {
         $this->em->persist($log);
         $this->em->flush();
